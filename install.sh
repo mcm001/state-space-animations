@@ -10,5 +10,6 @@ texlive-latex-extra \
 texlive-latex-recommended \
 texlive-science \
 tipa \
+&& pip3 install setuptools
 && pip3 install -r requirements.txt
 && pip3 install manimlib
