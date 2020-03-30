@@ -16,5 +16,5 @@ steps:
     addToPath: true
 - script: sudo chmod +x ~/work/1/s/install.sh && sudo ~/work/1/s/install.sh
   displayName:  "Install dependencies"
-- script: manim phase-space.py PendulumCirclingOrigin -l
+- script: python3.7 -m manim phase-space.py PendulumCirclingOrigin -l
   displayName: "Run first script"
