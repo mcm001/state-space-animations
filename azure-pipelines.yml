@@ -14,7 +14,9 @@ steps:
   inputs:
     versionSpec: '3.7'
     addToPath: true
-- script: sudo chmod +x ~/work/1/s/install.sh && sudo ~/work/1/s/install.sh
+- script: sudo apt-get install -qqy --no-install-recommends apt-utils ffmpeg sox libcairo2-dev texlive texlive-fonts-extra texlive-latex-extra texlive-latex-recommended texlive-science tipa
+  displayName: "Install system dependencies"
+- script: sudo chmod +x ~/work/1/s/install.sh && ~/work/1/s/install.sh
   displayName:  "Install dependencies"
 - script: python3.7 -m manim phase-space.py PendulumCirclingOrigin -l
   displayName: "Run first script"
