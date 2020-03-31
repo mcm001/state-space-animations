@@ -30,8 +30,11 @@ class PendulumCirclingOrigin(Scene):
         "point_vector_max_len": 6.0,
         "show_state_point_vector": True,
         "hide_pendulum": False,
+        "exit_after_5_swings": True,
+        "exit_after_time": None,
+        "n_steps_per_frame": 100,
         "pendulum_config": {
-            "initial_theta": 60 * DEGREES,
+            "initial_theta": 30 * DEGREES,
             "length": 2.0,
             "damping": 0,
             "top_point": ORIGIN,
@@ -63,11 +66,31 @@ class PendulumCirclingOrigin(Scene):
         self.create_point_and_vec()
         self.add_pendulum()
 
-        # self.wait(20)
-        self.wait(5)
+        if self.exit_after_time is not None:
+            self.wait(self.exit_after_time)
+        elif self.exit_after_5_swings:
+            self.negative_omega_count = 0
+            self.last_omega = self.pendulum.get_omega()
+            self.wait_until(self.has_circled_5_times, max_time=20)
+        else:
+            self.wait(1)
+
+    def has_circled_5_times(self):
+        omega = self.pendulum.get_omega()
+        if self.last_omega >= 0.0 and omega < 0.0:
+            self.negative_omega_count += 1
+        self.last_omega = omega
+        return self.negative_omega_count > 5
 
     def add_pendulum(self):
         self.add(self.pendulum)
+
+        def update_pendulum(pendulum):
+            current_state: State = self.state_point.get_state()
+            pendulum.set_theta(current_state.theta)
+            pendulum.set_omega(current_state.omega)
+
+        self.pendulum.add_updater(update_pendulum)
 
     def get_evolving_trajectory(self, mobject, color=WHITE):
         trajectory = VMobject()
@@ -96,11 +119,13 @@ class PendulumCirclingOrigin(Scene):
     def create_point_and_vec(self):
         pendulum: Pendulum = self.pendulum
 
-        state_point = Dot().set_color(GREEN)
-        state_point.add_updater(
-            lambda point: state_point.move_to((np.array((self.pendulum.get_theta(), self.pendulum.get_omega(), 0.)))))
+        state_point = self.state_point = DotWithState(self.n_steps_per_frame, self.pendulum_config['length'], 9.8,
+                                                      self.plane, state=State(self.pendulum.get_theta(),
+                                                                              self.pendulum.get_omega()))\
+            .set_color(GREEN)
+        state_point.start_swinging()
 
-        def draw_vector_and_move_state_point():
+        def draw_vector():
             # Create a dot to represent our current state in state-space
 
             state_point_pos = state_point.get_center_of_mass()
@@ -111,7 +136,6 @@ class PendulumCirclingOrigin(Scene):
             multiple = np.clip(
                 get_norm(xdot_at_t), -self.point_vector_max_len, self.point_vector_max_len
             )
-            # vector = Vector(xdot_at_t / multiple)
             vector = Vector(xdot_at_t / multiple)
             vector.shift(state_point_pos)
             vector.set_color(GREEN)
@@ -120,10 +144,9 @@ class PendulumCirclingOrigin(Scene):
             # vector.s(state_point_at_t)
             return vector
 
-        self.state_point = state_point
         self.trajectory = self.get_evolving_trajectory(state_point)
         if (self.show_state_point_vector):
-            state_vector = always_redraw(draw_vector_and_move_state_point)
+            state_vector = always_redraw(draw_vector)
             self.add(state_vector)
         self.add(self.trajectory, self.state_point)
 
@@ -135,7 +158,7 @@ class PendulumCirclingOrigin(Scene):
         pendulum = self.pendulum = Pendulum(**self.pendulum_config)
         pendulum.add_theta_label()
         pendulum.add_velocity_vector()
-        pendulum.start_swinging()
+        # pendulum.start_swinging()
 
         pendulum = self.pendulum
         background_rectangle = Rectangle(height=6, width=6, opacity=1.0, color=GREEN) \
@@ -144,7 +167,7 @@ class PendulumCirclingOrigin(Scene):
         pendulum.add_to_back(background_rectangle)
         pendulum.scale_in_place(0.5)
 
-        if (self.hide_pendulum is False):
+        if self.hide_pendulum is False:
             pendulum.move_to(TOP + LEFT_SIDE + (RIGHT + DOWN) * 0.25, aligned_edge=pendulum.get_corner(UP + LEFT))
         else:
             pendulum.move_to((TOP + LEFT_SIDE) * 1.1, aligned_edge=pendulum.get_corner(DOWN + RIGHT))
@@ -352,8 +375,6 @@ class Pendulum(VGroup):
 
         theta = self.get_theta()
         omega = self.get_omega()
-        if (theta > 3):
-            ohno = 4
 
         nspf = self.n_steps_per_frame
         for x in range(nspf):
@@ -370,6 +391,8 @@ class Pendulum(VGroup):
 
 class UnstableFeedForwardAtHorizontal(PendulumCirclingOrigin):
     CONFIG = {
+        "exit_after_5_swings": False,
+        "exit_after_time": 4,
         "extra_accel_": lambda point: np.array((0.0, 4.9, 0.0)),
         "pendulum_config": {
             "initial_theta": 60 * DEGREES,
@@ -377,28 +400,30 @@ class UnstableFeedForwardAtHorizontal(PendulumCirclingOrigin):
     }
 
 
-class FeedbackWithArmAtHorizontal(PendulumCirclingOrigin):
+class LowFeedbackWithArmAtHorizontal(PendulumCirclingOrigin):
     CONFIG = {
         "extra_accel_": lambda point: (
                 np.array((0.0, 4.9, 0.0)) + np.array((1.0 * (PI / 2.0 - point[0]), 1.0 * (0.0 - point[1]), 0.0))),
+        "exit_after_time": 4,
         "pendulum_config": {
-            "initial_theta": 30 * DEGREES,
+            "initial_theta": 0 * DEGREES,
         },
         "show_state_point_vector": False,
-        "hide_pendulum": True
+        "hide_pendulum": False
     }
 
-    def construct(self):
-        global extra_accel
-        extra_accel = self.extra_accel_
-        self.plane = NumberPlane(**self.coordinate_plane_config)
-        self.create_pendulum_but_dont_add()
-        self.create_vector_field()
-        self.create_point_and_vec()
-        self.add_pendulum()
 
-        # self.wait(20)
-        self.wait(4)
+class HighFeedback(PendulumCirclingOrigin):
+    CONFIG = {
+        "extra_accel_": lambda point: (
+                np.array((0.0, 0, 0.0)) + np.array((10.0 * (0.0 - point[0]), 2.0 * (0.0 - point[1]), 0.0))),
+        "exit_after_time": 5,
+        "pendulum_config": {
+            "initial_theta": -50 * DEGREES,
+        },
+        "show_state_point_vector": False,
+        "hide_pendulum": False
+    }
 
 
 class DotWithState(Dot):
@@ -460,8 +485,7 @@ class ShowMultipleFeedback(PendulumCirclingOrigin):
         "extra_accel_": lambda point: (
                 np.array((0.0, 0.0, 0.0)) + 0 * np.array(((0 - point[0]), (0 - point[1]), 0.0))),
         "show_state_point_vector": False,
-        "hide_pendulum": True,
-        "n_steps_per_frame": 100
+        "hide_pendulum": True
     }
 
     def construct(self):

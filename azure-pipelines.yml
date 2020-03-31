@@ -25,28 +25,16 @@ steps:
 - script: manim phase-space.py UnstableFeedForwardAtHorizontal -m
   displayName: "Generate UnstableFeedForwardAtHorizontal"
 
-- script: manim phase-space.py FeedbackWithArmAtHorizontal -m
-  displayName: "Generate FeedbackWithArmAtHorizontal"
+- script: manim phase-space.py LowFeedbackWithArmAtHorizontal -m
+  displayName: "Generate LowFeedbackWithArmAtHorizontal"
+
+- script: manim phase-space.py HighFeedback -m
+  displayName: "Generate HighFeedback"
 
 - script: manim phase-space.py ShowMultipleFeedback -m
   displayName: "Generate ShowMultipleFeedback"
 
 - task: PublishPipelineArtifact@0
   inputs:
-    artifactName: 'PendulumCirclingOrigin.mp4'
-    targetPath: 'videos/phase-space/720p30/'
-
-- task: PublishPipelineArtifact@0
-  inputs:
-    artifactName: 'UnstableFeedForwardAtHorizontal.mp4'
-    targetPath: 'videos/phase-space/720p30/'
-
-- task: PublishPipelineArtifact@0
-  inputs:
-    artifactName: 'FeedbackWithArmAtHorizontal.mp4'
-    targetPath: 'videos/phase-space/720p30/'
-
-- task: PublishPipelineArtifact@0
-  inputs:
-    artifactName: 'ShowMultipleFeedback.mp4'
+    artifactName: 'Publish 720p30'
     targetPath: 'videos/phase-space/720p30/'
