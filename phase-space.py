@@ -416,8 +416,8 @@ class LowFeedbackWithArmAtHorizontal(PendulumCirclingOrigin):
 class HighFeedback(PendulumCirclingOrigin):
     CONFIG = {
         "extra_accel_": lambda point: (
-                np.array((0.0, 0, 0.0)) + np.array((10.0 * (0.0 - point[0]), 2.0 * (0.0 - point[1]), 0.0))),
-        "exit_after_time": 5,
+                np.array((0.0, 0, 0.0)) + np.array((10.0 * (0.0 - point[0]), 5.0 * (0.0 - point[1]), 0.0))),
+        "exit_after_time": 6,
         "pendulum_config": {
             "initial_theta": -50 * DEGREES,
         },
@@ -483,7 +483,7 @@ class ShowMultipleFeedback(PendulumCirclingOrigin):
     CONFIG = {
         "gravity": 9.8,
         "extra_accel_": lambda point: (
-                np.array((0.0, 0.0, 0.0)) + 0 * np.array(((0 - point[0]), (0 - point[1]), 0.0))),
+                np.array((0.0, 0.0, 0.0)) + np.array((2.0 * (0.0 - point[0]), 2.0 * (0.0 - point[1]), 0.0))),
         "show_state_point_vector": False,
         "hide_pendulum": True
     }
