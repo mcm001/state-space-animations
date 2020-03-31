@@ -18,5 +18,35 @@ steps:
   displayName: "Install system dependencies"
 - script: sudo chmod +x ~/work/1/s/install.sh && ~/work/1/s/install.sh
   displayName:  "Install dependencies"
-- script: manim phase-space.py PendulumCirclingOrigin -l
-  displayName: "Run first script"
+
+- script: manim phase-space.py PendulumCirclingOrigin -m
+  displayName: "Generate PendulumCirclingOrigin"
+
+- script: manim phase-space.py UnstableFeedForwardAtHorizontal -m
+  displayName: "Generate UnstableFeedForwardAtHorizontal"
+
+- script: manim phase-space.py FeedbackWithArmAtHorizontal -m
+  displayName: "Generate FeedbackWithArmAtHorizontal"
+
+- script: manim phase-space.py ShowMultipleFeedback -m
+  displayName: "Generate ShowMultipleFeedback"
+
+- task: PublishPipelineArtifact@0
+  inputs:
+    artifactName: 'PendulumCirclingOrigin.mp4'
+    targetPath: 'videos/phase-space/720p30/'
+
+- task: PublishPipelineArtifact@0
+  inputs:
+    artifactName: 'UnstableFeedForwardAtHorizontal.mp4'
+    targetPath: 'videos/phase-space/720p30/'
+
+- task: PublishPipelineArtifact@0
+  inputs:
+    artifactName: 'FeedbackWithArmAtHorizontal.mp4'
+    targetPath: 'videos/phase-space/720p30/'
+
+- task: PublishPipelineArtifact@0
+  inputs:
+    artifactName: 'ShowMultipleFeedback.mp4'
+    targetPath: 'videos/phase-space/720p30/'
