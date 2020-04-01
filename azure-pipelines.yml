@@ -38,3 +38,13 @@ steps:
   inputs:
     artifactName: 'Publish 720p30'
     targetPath: 'videos/phase-space/720p30/'
+
+- task: UniversalPackages@0
+  displayName: Universal Publish
+  inputs:
+    command: publish
+    publishDirectory: 'videos/phase-space/720p30/'
+    vstsFeedPublish: 'state-space-animations'
+    vstsFeedPackagePublish: 'state-space-animations'
+    packagePublishDescription: 'state space animations'
+
